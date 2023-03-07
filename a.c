@@ -4,5 +4,6 @@ int main(int argc,char* argv[]){
     while(scanf("%d", &i) != EOF){
         sum += i;
     }
+    printf("%d", sum);
     return 0;
 }       
