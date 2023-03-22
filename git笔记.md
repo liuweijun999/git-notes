@@ -85,43 +85,25 @@ git config --global user.email liuweijun999@qq.com
 配置默认文本编辑器，当Git需要你输入信息时会调用它。如果未配置，Git会使用操作系统默认的文本编辑器。
 
 | 编辑器 | 设置命令 |
-| -- | -- |
+| --- | --- |
 | Atom | `git config --global core.editor "atom --wait"`|
-
 | BBEdit (Mac, with command line tools) | `git config --global core.editor "bbedit -w"` |
-
 | Emacs | `git config --global core.editor emacs` |
-
 | Gedit (Linux) | `git config --global core.editor "gedit --wait --new -window" `|
-
 | Gvim (Windows 64-bit) | `git config --global core.editor "'C:/Program Files/Vim/vim72/gvim.exe' --nofork '%*'" (Also see note below)`|
-
 | Kate (Linux) | `git config --global core.editor "kate"` |
-
 | nano | `git config --global core.editor "nano -w"` |
-
 |Notepad (Windows 64-bit) | `git config core.editor notepad` |
-
 |Notepad++ (Windows 64-bit) | `git config --global core.editor "'C:/Program Files/Notepad++/notepad++.exe' -multiInst -notabbar -nosession -noPlugin" (Also see note below)` |
-
 |Scratch (Linux) | `git config --global core.editor "scratch-text-editor"` |
-
 |Sublime Text (macOS) | `git config --global core.editor "/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl --new-window --wait"` |
-
 |Sublime Text (Windows 64-bit) | `git config --global core.editor "'C:/Program Files/Sublime Text 3/sublime_text.exe' -w" (Also see note below)` |
-
 |TextEdit (macOS) | `git config --global --add core.editor "open -W -n"` |
-
 |Textmate | `git config --global core.editor "mate -w"` |
-
 |Textpad (Windows 64-bit) | `git config --global core.editor "'C:/Program Files/TextPad 5/TextPad.exe' -m (Also see note below)` |
-
 |Vim | `git config --global core.editor "vim"` |
-
 |VS Code | `git config --global core.editor "code --wait"` |
-
 |WordPad | `git config --global core.editor '"C:\Program Files\Windows NT\Accessories\wordpad.exe"'"` |
-
 |Xi | `git config --global core.editor "xi --wait"` |
 
 #### 检查配置信息
@@ -929,18 +911,203 @@ git merge iss53
 
 任何因包含合并冲突而有待解决的文件，都会以**未合并**状态标识出来。git会在有冲突的文件中加入标准的冲突解决标记，可以打开这些包含冲突的文件然后手动解决冲突。冲突的文件会包含一些特殊区段，如下的样子：
 
-```text
-<<<<<<< HEAD:index.html
-<div id="footer">contact : email.support@github.com</div>
+```
+<<<<<<< HEAD
+234 567
 =======
-<div id="footer">
- please contact us at support@github.com
-</div>
->>>>>>> iss53:index.html
+789 012
+>>>>>>> testing
 ```
 
+HEAD所指示的版本在这个区段的上半部分，testing分支所指示的在`=======`的下半部分。为了解决冲突，你必须选择`=======`分割的两部分中的一个或者自行合并内容，并且`<<<<<<<`,`=======`和`>>>>>>>`这些行被删除。解决了文件里的冲突后，使用`git add`命令将其标记为冲突已解决。一旦暂存这些文件，git会将标记为冲突已解决。
 
+运行`git mergettool`命令可以启动一个合适的可视化工具来一步一步地解决冲突。
 
+如果对合并感到满意，并且确定之前有冲突的文件已暂存，这时可以使用`git commit`来完成合并提交。
 
+### 分支管理
 
+不带选项的运行`git branch`会得到当前所有分支的列表：
+
+```shell
+git branch
+```
+
+前面带有`*`字符的分支代表当前检出分支（即HEAD指针指向的分支）。
+
+查看每个分支最后一次的提交，可以使用：
+
+```shell
+git branch -v
+```
+
+`--merged`,`--no-merged`两个选项可以筛选列表中已合并到或未合并到当前分支的分支。
+
+```shell
+git branch --merged
+```
+
+```shell
+git branch --no-merged
+```
+
+如果尝试使用`git branch -d`删除未合并分支会失败，因为它包含了未合并工作。如果要删除未合并分支并丢掉未合并的工作，可以使用强制删除：
+
+```shell
+git branch -D <branch_name>
+```
+
+可以在`--merged`或`--no-merged`后提供附加参数来查看其他分支和并到某一分支的状态，而不必检出到某一分支。例如，查看未合并到master分支的分支：
+
+```shell
+git branch --merged --master
+```
+
+### 远程分支
+
+远程引用是对远程仓库的引用（指针），包括分支、标签等等。
+
+显示的获取远程引用的列表：
+
+```shell
+git ls-remote <remote>
+```
+
+获取远程分支的更多信息：
+
+```shell
+git remote show <remote>
+```
+
+远程跟踪分支是远程分支状态的引用。它们是无法移动的本地引用。进行网络通信，git会为你精确地移动它们反映远程仓库的状态。该分支在远程仓库的位置就是最后一次连接到它们的位置。
+
+它们以`<remote>/<branch>`的形式名门。例如origin/master
+
+如果在本地分支master上做了一些工作，同一时间其他人推送提交到远程仓库并更新了master分支（即它们的提交历史走向了不同的方向），只要不与远程服务器连接（并拉去数据），origin/master指针不会移动。
+
+要与指定远程仓库同步数据，运行：
+
+```shell
+git fetch <remote>
+```
+
+这个命令会查找`<remote>`是哪个服务器，从中抓取本地没有的数据，并更新本地数据库，移动`<remote>/<branch>`指针到更新后的位置。
+
+#### 推送
+
+想要公开分享一个分支时，需要将其推送到有写入权限的远程仓库上。本地分支不会自动与远程仓库同步（必须显式地推送分支）。
+
+推送分支可以运行`git push <remote> <branch>`，例如推送serverfix分支：
+
+```shell
+git push origin serverfix
+```
+
+这里工作被简化了，git自动将serverfix分支名字展开为refs/heads/servwrfix:refs/heads/serverfix，意味着“推送本地的serverfix分支来更新远程仓库上的serverfix分支。”也可以运行：
+
+```shell
+git push origin serverfix:serverfix
+```
+
+它意味着“推送本地serverfix分支，将其作为远程仓库的serverfix分支”，这可以推送本地分支到一个命名不同的远程分支。
+
+特别注意当抓取到新的远程跟踪分支，本地不会自动生成一份可编辑的副本，即不会有一个新的分支，只有一个不可修改的`<remote>/<branch>`指针。
+
+可以运行`git merge <remote>/<branch>`将其合并到当前分支。
+
+也可以创建一个起点位于`<remote>/<branch>`的本地分支：
+
+```shell
+git checkout -b <branch> <remote>/<branch>
+```
+
+#### 跟踪分支
+
+从一个远程跟踪分支检出一个本地分支会自动创建“跟踪分支”（它跟踪的分支叫做“上游分支”）。跟踪分支是远程分支有直接关系的本地分支。在一个跟踪分支上云行`git pull`，git能自动的识别取哪个服务器上抓取、合并到哪个分支。
+
+当克隆一个仓库时，通常会自动创建一个跟踪origin/mester的master分支。但也可以设置其它的跟踪分支，运行`git checkout -b <branch> <remote>/<branch>`命令，git提供一个`--track`的快捷选项：
+
+```shell
+git checkout --track <remote>/<branch>
+```
+
+由于这个操作太常用，故如果检出的分支不存在，且刚好有一个名字与之匹配的远程分支，那么git会为你创建一个跟踪分支：
+
+```shell
+git checkout <remote_branch>
+```
+
+想要本地分支与远程分支设置不同名字，可以使用：
+
+```shell
+git checkout -b <branch_2> <remote>/<branch1>
+```
+
+现在，本地分支`<branch2>`会自动从`<remote>/<branch>`拉取。
+
+设置已有的本地分支跟踪一个刚刚拉去下来的远程分支，或者想要修改正在跟踪的上游分支，可以在任意时候使用`-u`或`--set-upstream-to`选项运行`git branch`来设置。
+
+```shell
+git branch -u <remote>/<branch>
+```
+
+```shell
+git branch --up-stream-to <remote>/<branch>
+```
+
+当设置跟踪分支后，可以通过先写`@{upstream}`或`@u`来引用上游分支。例如，在master分支正跟踪origin/master分支时，可以使用`git merge @{u}`来取代`git mrege origin/master`实现合并。
+
+要查看设置的所有跟踪分支，可以使用：
+
+```shell
+git branch -vv
+```
+
+输出中的ahead表示本地未推送到服务器的提交次数，behind表示未合并到本地的提交次数。注意，这些数值来自于从服务器最后延迟抓取的数据。这个命令并不会连接服务器。要统计最新数据，需要在此命令前抓取所有远程仓库。
+
+#### 拉取
+
+`git fetch`抓取本地没有的数据时，不会修改工作命令的内容。，它只会获取数据后让你自己合并。`git pull`命令是一个`git fetch`后紧跟一个`git merge`命令。如果有一个设置好的跟踪分支，不管是显式设置的还是通过`git clone`或`git checkout`命令创建的，`git pull`都会查找当前分支所跟踪的服务器分支，从服务器上抓取数据然后尝试合并那个远程分支。
+
+单独显式使用`git fetch`和`git merge`命令更好。
+
+#### 删除远程分支
+
+运行带有`--delete`选项的`fit push`命令可以删除一个远程分支。例如删除服务器上的serverfix分支，运行：
+
+```shell
+git push origin --delete serverfix
+```
+
+这个命令基本上只是从服务器上移除这个指针，git服务器通常会保留数据一段时间直到运行垃圾回收。所以不小心删除了，通常可以恢复。
+
+### 变基
+
+#### 变基的基本操作
+
+使用`rebase`命令将某一分支上的所有修改都迁移到另一分支上，这种操作叫做**变基(rebase)**。例如将experiment分支变基到master分支上：
+
+```shell
+git checkout experiment
+```
+
+```shell
+git rebase master
+```
+
+变基的原理是首先找到两个分支的最近共同祖先，然后对比当前分支相对于祖先的历次提交，提取相应的修改并存为临时文件，然后将当前分支指向目标分支（基底），最后将之前另存为临时文件的修改依序应用。
+
+回到master分支，进行一次快进合并。
+
+```shell
+git checkout master
+```
+
+```shell
+git merge experiment
+```
+
+变基合并与`merge`合并的最终结构没有任何区别，但变基使得提交历史更加整洁。
+
+**如果提交存在于自己仓库之外，而别人可能基于这些提交进行开发，那么不要执行变基**
 
